@@ -1,53 +1,10 @@
-name: Build Android APK
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download Source
-        uses: actions/checkout@v4
-
-      - name: Extract ZIP
+      - name: Diagnose Archive
         run: |
-          ZIP=$(find . -maxdepth 1 -iname "*.zip" -print -quit)
-          if [ -z "$ZIP" ]; then
-            echo "ZIP file not found!"
-            exit 1
-          fi
-          mkdir extracted
-          unzip -q "$ZIP" -d extracted
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Find Gradle
-        run: |
-          GRADLEW=$(find extracted -type f -name gradlew -print -quit)
-          if [ -z "$GRADLEW" ]; then
-            echo "gradlew not found in ZIP!"
-            find extracted -maxdepth 3 -type f | head -100
-            exit 1
-          fi
-          echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> $GITHUB_ENV
-
-      - name: Build APK
-        run: |
-          cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: BABARPHANTOM-APK
-          path: extracted/**/build/outputs/apk/debug/*.apk
+          echo "=== FILE INFO ==="
+          ls -lh
+          echo "=== FILE TYPE ==="
+          file ./*.zip
+          echo "=== FIRST BYTES ==="
+          xxd -l 32 ./*.zip
+          echo "=== ZIP TEST ==="
+          unzip -t ./*.zip || true
