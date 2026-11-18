@@ -1,10 +1,44 @@
-      - name: Diagnose Archive
+name: Diagnose Android Project
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: sudo apt-get update && sudo apt-get install -y unzip file xxd
+
+      - name: Find ZIP
         run: |
+          echo "=== FILES ==="
+          ls -lah
+
+          echo "=== ZIP FILES ==="
+          find . -maxdepth 1 -type f -iname "*.zip"
+
+      - name: Diagnose ZIP
+        run: |
+          ZIP=$(find . -maxdepth 1 -type f -iname "*.zip" -print -quit)
+
+          if [ -z "$ZIP" ]; then
+            echo "ZIP NOT FOUND"
+            exit 1
+          fi
+
           echo "=== FILE INFO ==="
-          ls -lh
-          echo "=== FILE TYPE ==="
-          file ./*.zip
-          echo "=== FIRST BYTES ==="
-          xxd -l 32 ./*.zip
-          echo "=== ZIP TEST ==="
-          unzip -t ./*.zip || true
+          file "$ZIP"
+
+          echo "=== FILE SIZE ==="
+          ls -lh "$ZIP"
+
+          echo "=== FILE HEADER ==="
+          xxd -l 32 "$ZIP"
+
+          echo "=== ZIP VALIDATION ==="
+          unzip -t "$ZIP" || true
